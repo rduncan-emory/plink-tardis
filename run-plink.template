@@ -7,6 +7,9 @@
 #PBS -q tardis-6
 #PBS -j oe
 #PBS -o log/$PBS_JOBID.log
+#PBS -V
+#PBS -r y
+#PBS -A WHAT_GOES_HERE?
 
 echo "PLINK analyzing partition PARTITION of chromosome CHR_K on `/bin/hostname`"
 PLINK_CMD
