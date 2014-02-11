@@ -113,7 +113,6 @@ for my $chr (1..$chr_max){
 	else{
 		# print the command with options:
 		my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
-		print $cli . "\n";
 		system $cli;
 	}
 }
