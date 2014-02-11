@@ -113,5 +113,7 @@ while($line = <PARTITIONS>){
 } # while PARTITIONS
 
 close(SCHEDULE);
+chmod 0755, $sfile;  # ensure schedule file is executable
+
 close(PARTITIONS);
 

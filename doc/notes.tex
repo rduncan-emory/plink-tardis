@@ -1,0 +1,327 @@
+% macros=mkvi
+% notes.tex
+%
+\startenvironment notes
+
+\usetypescript[times][ec] 
+\setupbodyfont[times,rm,11pt]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ConTeXt modules:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% bibliography:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usemodule[bib]
+\usemodule[bibltx]
+\setuppublications[alternative=aps]
+
+\usemodule[tikz]
+\usetikzlibrary[automata]
+\usetikzlibrary[mindmap]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% support for color:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setupcolors[state=start]
+% TODO:  use color palets
+\definecolor[lightred][r=1.0, g=0.9, b=0.9]
+\definecolor[lightgreen][r=0.9, g=1.0, b=0.9]
+\definecolor[lightyellow][r=1.0, g=1.0, b=0.8]
+\definecolor[lightblue][r=0.95, g=0.95, b=1.0]
+\definecolor[lightviolet][r=0.985, g=0.85, b=1.0]
+\definecolor[moccasin][r=1, g=0.8706, b=.6784]
+\definecolor[palegoldenrod][r=0.933, g=0.91, b=0.667]
+\definecolor[lightgoldenrod][r=0.94, g=0.90, b=0.55]
+\definecolor[cornsilk][r=1, g=0.973, b=0.863]
+\definecolor[darkred][r=0.5, g=0.0, b=0.0]
+\definecolor[darkgreen][r=0.0, g=0.5, b=0.0]
+\definecolor[darkblue][r=0.0, g=0.0, b=0.5]
+\definecolor[awsgray][r=0.800, g=0.800, b=0.600]%[204/255, 204/255, 153/255]
+\definecolor[natgray][r=0.906, g=0.886, b=0.800]%[231/255, 226/255, 204/255]
+\definecolor[natgreen][r=0.235, g=0.380, b=0.263]%[r=60/255, 97/255, 67/255]
+
+\definecolor[PageTextColor][white]
+\definecolor[PageMarginColor][lightyellow]
+\definecolor[PageHeaderColor][lightyellow]
+\definecolor[PageFooterColor][lightyellow]
+
+\definecolor[ChapterTitleColor][darkblue]
+\definecolor[SectionTitleColor][moccasin]
+\definecolor[SubsectionTitleColor][palegoldenrod]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% support for hyperlinks, etc:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setupinteraction[state=start]
+\setupurl[style=\tf]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% page geometry:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input ../layout-biochemistry-example.tex
+%\input ../tablet-landscape-right-margin.tex
+\input tablet-landscape-thin-margins.tex
+
+
+%\setupbackgrounds[text]
+%                 [text]
+%                 [background=color, backgroundcolor=PageTextColor]
+%\setupbackgrounds[text]
+%                 [leftmargin,rightmargin]
+%                 [background=color, backgroundcolor=PageMarginColor]
+%\setupbackgrounds[header]
+%                 [leftmargin,text,rightmargin]
+%                 [background=color, backgroundcolor=PageHeaderColor,
+%                  backgrounddepth=2.3cm]
+%\setupbackgrounds[footer]
+%                 [leftmargin,text,rightmargin]
+%                 [background=color, backgroundcolor=PageFooterColor,
+%                  backgrounddepth=2.3cm]
+\setuppagenumbering [alternative=singlesided]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% paragraph and page formatting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setupinterlinespace[line=1.3\bodyfontsize]
+\setupwhitespace[medium]
+%\setupindenting[medium]
+\setupfootnotes[way=bypage, conversion=set 2]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% section headers:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definetextbackground[SectionTitleBackground]
+        [frame=off, bottomframe=on,
+         location=text,
+         backgroundcolor=SectionTitleColor,
+         %backgroundoffset=0.35cm,
+         %bottomoffset=-0.5\bodyfontsize,
+         %offset=1.0cm
+]
+\definetextbackground[SubsectionTitleBackground]
+        [frame=off, bottomframe=on,
+         location=text,
+         backgroundcolor=SubsectionTitleColor,
+         %backgroundoffset=0.25cm,
+         %bottomoffset=-0.5\bodyfontsize,
+         %offset=1.0cm
+]
+
+\setuphead[section, subject]
+   [
+    style={\tfa\bf\ss},%
+    before={\starttextbackground[SectionTitleBackground]\vskip -0.5cm},%
+    after={\vskip-0.4cm\stoptextbackground},%
+%    after={\vskip-1.3\bodyfontsize},
+   ]
+
+\setuphead[subsubject]
+   [style=bold,%
+    before={\vskip 0.75cm \starttextbackground[SubsectionTitleBackground]\vskip -0.585cm},%
+    after={\vskip-0.4cm\stoptextbackground},%
+    %before={\blank[disable]},%
+    %after={\blank[disable]},%
+   ]
+
+\setuphead[subsubsubject]
+   [style=bold,%
+    before={\vskip 0.5cm\blank[disable]},%
+    after={\blank[disable]},%
+   ]
+
+
+\setupcombinedlist[content][level=2,alternative=c]
+\setuplist[chapter][style=bold]
+
+\setupheads[separator=.]
+\setupinmargin[number][style=\sfx]
+
+\setupcaptions[width=max]
+
+\startsetups[head]
+  ~\hfill~
+\stopsetups
+
+\startsetups[foot]
+  \Topic \hfill \pagenumber \hfill \Copyright
+\stopsetups
+
+\setupthinrules[rulethickness=1.5pt]  
+\setupheader[text]
+  [after={\vskip-\bodyfontsize\thinrules[n=2,rulethickness=0.5pt,inbetween={\vskip -0.40cm}]},
+   before={\vskip-0.5\bodyfontsize\thinrules[n=1,rulethickness=0.5pt]}
+  ]
+
+\setupfooter[text]
+  [before={\nowhitespace\thinrules[n=2,rulethickness=0.5pt,inbetween={\vskip -0.41cm}]
+                                   \vskip0.1\bodyfontsize},
+   after={\vskip-0.9\bodyfontsize\thinrules[n=1,rulethickness=0.5pt]}
+  ]
+
+
+\setupheadertexts[][\setups{head}]
+\setupfootertexts[][\setups{foot}]
+\setuppagenumbering[location=]  % suppress page number
+
+%\showframe[text]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% frames, etc.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\defineframedtext
+  [framedfragment]
+  [frame=off,%
+   rightframe=on,%
+   framecolor=darkred,%
+   rulethickness=3pt,%
+   background=screen,%
+   width=broad]
+
+%% example usage:
+%\startframedfragment
+%some text inside a frame
+%\stopframedfragment
+
+%% abstract formatting:
+%\startnarrower\switchtobodyfont[small]
+%\midaligned{\bf Abstract}\par
+%This is an abstract of this article.
+%\stopnarrower
+
+
+
+%-----------------------------------------------
+% setup verbatime environments:
+%-----------------------------------------------
+
+% stdin verbatim -------------
+\definetextbackground[stdin]
+   [background=color,
+    backgroundcolor=lightgray,
+    backgroundoffset=0cm,
+    offset=0.5cm,
+    frame=on,
+    framecolor=black,
+    location=paragraph,
+    color=black
+  ]
+\definetyping[STDIN]
+\setuptyping[STDIN]
+  [margin=1cm,
+   bodyfont=10.0pt,
+   before={\starttextbackground[stdin]},%
+   after={\stoptextbackground},
+  ]
+
+% stdout verbatim -------------
+\definetextbackground[stdout]
+   [background=color,
+    backgroundcolor=lightblue,
+    backgroundoffset=0cm,
+    offset=0.5cm,
+    frame=on,
+    framecolor=black,
+    location=paragraph,
+    color=black
+  ]
+\definetyping[STDOUT]
+\setuptyping[STDOUT]
+  [margin=1cm,
+   bodyfont=10.0pt,
+   before={\starttextbackground[stdout]},%
+   after={\stoptextbackground},
+  ]
+
+% file verbatim -------------
+\definetextbackground[file]
+   [background=color,
+    backgroundcolor=cornsilk,
+    backgroundoffset=0cm,
+    offset=0.5cm,
+    frame=on,
+    framecolor=black,
+    location=paragraph,
+    color=black
+  ]
+\definetyping[FILE]
+\setuptyping[FILE]
+  [margin=1cm,
+   bodyfont=10.0pt,
+   before={\starttextbackground[file]},%
+   after={\stoptextbackground},
+  ]
+
+
+\define[1]\filename{
+    {\darkgreen\tt\bf #1}
+}
+\define[1]\command{
+    {\darkred\tt\bf #1}
+}
+\define[1]\website{
+    {\darkblue\tt\bf #1}
+}
+\define[1]\warning{
+    {\red\bf #1}
+}
+
+
+\stopenvironment %notes
+\endinput
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% highlight environment:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\startMPenvironment 
+  \usetypescript[palatino][texnansi] 
+  \setupbodyfont[palatino,rm,14pt] 
+\stopMPenvironment 
+
+\startuseMPgraphic{background:random}
+  path p;
+  for i = 1 upto nofmultipars :
+    p = (multipars[i]
+    topenlarged 10pt
+    bottomenlarged 10pt) randomized 4pt ;
+    fill p withcolor lightgray ;
+    draw p withcolor \MPvar{linecolor}
+    withpen pencircle scaled \MPvar{linewidth};
+  endfor;
+\stopuseMPgraphic
+
+\definetextbackground
+  [highlightframe]
+  [mp=background:random,
+   location=paragraph,
+   rulethickness=1pt,
+   width=broad,
+   leftoffset=1em,
+   rightoffset=1em,
+   before={\testpage[3]\blank[3*big]},
+   after={\blank[3*big]}
+  ]
+
+\defineenumeration
+  [highlight]
+  [text=,
+   before={\starthighlightframe},
+   after={\stophighlightframe},
+   number=no,
+   title=yes,
+   headalign=flushright,
+   stopper=,
+   location=top,
+   list=all,
+   listtext={}
+  ]
+
+
+\stopenvironment %notes
+\endinput
