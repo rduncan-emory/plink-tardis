@@ -136,6 +136,7 @@ for(my $j = 0; $j < $N; $j++){
 	# print the command with options:
     my $cli = sprintf("%s %s", $plink, $plink_opts);
     print $cli . "\n";
+    system $cli;
 }
 
 __END__

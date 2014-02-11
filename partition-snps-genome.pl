@@ -106,15 +106,15 @@ for my $chr (1..$chr_max){
 
 	if($summary){
 		#print sprintf("%i partitions of chromosome %i\n", $N, $chr);
-		my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
-		#my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
+		#my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
+		my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
 		system $cli;
-		#print $cli . "\n";
 	}
 	else{
 		# print the command with options:
 		my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
 		print $cli . "\n";
+		system $cli;
 	}
 }
 
