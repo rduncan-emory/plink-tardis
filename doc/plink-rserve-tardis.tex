@@ -350,6 +350,9 @@ where each auto-generated batch file can be qsub-ed for a \PLINK analysis of a s
 #PBS -q tardis-6
 #PBS -j oe
 #PBS -o log/$PBS_JOBID.log
+#PBS -V
+#PBS -r y
+#PBS -A WHAT-GOES-HERE?
 
 echo "PLINK analyzing partition 1 of chromosome part of chromosome 1 on `/bin/hostname`"
 plink --noweb --bfile AA --covar covariate.cov --R Rplink.R --chr 1 --silent --snps rs3094315-rs242050 --out BDI_chr01_rs1
@@ -383,15 +386,14 @@ may look like this:
 }
 %%
 
-
-\warning{NB:  for now, this is untested!}
-
-
+%\warning{NB:  for now, this is untested!}
+\warning{NB:  plink-qsubs still untested}
 
 %-------------------------------------------------------------
-\startsubsubject[title={Summary}]
+\startsubsubject[title={To do}]
 %-------------------------------------------------------------
 
+fix account specification in billing line of PBS script
 
 \stopcomponent
 \endinput
