@@ -55,8 +55,8 @@ my $sfile = "plink-schedule.sh";            # list of qsub calls to batch script
 my $template_file = "run-plink.template";   # batch script template
 GetOptions('pmem=i'     => \$pmem,
            'in=s'       => \$pfile,
-		   'out=s'      => \$sfile,
-		   'template=s' => \$template_file,
+           'out=s'      => \$sfile,
+           'template=s' => \$template_file,
 );
 
 open(PARTITIONS, "< $pfile");
@@ -64,11 +64,11 @@ open(PARTITIONS, "< $pfile");
 # open schedule file and handle the bang line:
 my $needs_bang = 1;
 if(! -e $sfile){
-	my $needs_bang = 0;
+    my $needs_bang = 0;
 }
 open(SCHEDULE, ">> $sfile");
 if($needs_bang){
-	print SCHEDULE "#!/bin/sh\n";
+    print SCHEDULE "#!/bin/sh\n";
 }
 
 open(TEMPLATE, "< $template_file");
@@ -77,39 +77,40 @@ close(TEMPLATE);
 
 my $line;
 while($line = <PARTITIONS>){
-	my $is_cmd = $line =~ m/^plink/;
-	if($is_cmd){
-		chomp $line;
-		my $cmd = $line;
+    my $is_cmd = $line =~ m/^plink/;
+    if($is_cmd){
+        chomp $line;
+        my $cmd = $line;
 
-		# name of corresponding job id and batch file:
-		$line =~ m/--outroot[ =]+(.+)\s.+$/;
-		my $jobid = $1;
-		my $batch_file = sprintf("%s.sh", $jobid);
+        # name of corresponding job id and batch file:
+        $line =~ m/--out=(\S+)/;
+        my $jobid = $1;
 
-		# which partition:
-		$jobid =~ m/rs([0-9]+)/;
-		my $rs = $1;
+        my $batch_file = sprintf("%s.sh", $jobid);
 
-		# which chromosome:
-		$line =~ m/--chr\s([0-9]+)/;
-		my $chr = $1;
+        # which partition:
+        $jobid =~ m/rs([0-9]+)/;
+        my $rs = $1;
 
-		# populate the batch script with job-specific parameters:
-		my $param = $template;
-		$param =~ s/JOB_NAME/$jobid/;
-		$param =~ s/PARTITION/$rs/;
-		$param =~ s/CHR_K/part of chromosome $chr/;
-		$param =~ s/PLINK_CMD/$line/;
-		$param =~ s/PMEM/$pmem/;
-		open(BATCH, "> $batch_file");
-		print BATCH $param;
-		close(BATCH);
+        # which chromosome:
+        $line =~ m/--chr\s([0-9]+)/;
+        my $chr = $1;
 
-		# list the qsub call in the schedule file:
-		my $qsub_call = sprintf("qsub %s\n", $batch_file);
-		print SCHEDULE $qsub_call;
-	}
+        # populate the batch script with job-specific parameters:
+        my $param = $template;
+        $param =~ s/JOB_NAME/$jobid/;
+        $param =~ s/PARTITION/$rs/;
+        $param =~ s/CHR_K/part of chromosome $chr/;
+        $param =~ s/PLINK_CMD/$line/;
+        $param =~ s/PMEM/$pmem/;
+        open(BATCH, "> $batch_file");
+        print BATCH $param;
+        close(BATCH);
+
+        # list the qsub call in the schedule file:
+        my $qsub_call = sprintf("qsub %s\n", $batch_file);
+        print SCHEDULE $qsub_call;
+    }
 } # while PARTITIONS
 
 close(SCHEDULE);
