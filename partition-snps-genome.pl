@@ -89,7 +89,7 @@ for my $chr (1..$chr_max){
         #   breakdown of SNP partitions:
         #-----------------------------------------------------------
 		my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
-		print $cli . "\n";
+		#print $cli . "\n";
 		system $cli;
 	}
 	else{

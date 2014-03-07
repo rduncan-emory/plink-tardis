@@ -64,8 +64,8 @@ my $plink = "plink";  # main executable
 my $snp_count = @chr_data;
 # summarize the partitioning that would occur then exit:
 if($summary){
-	print sprintf("SNP count in chromosome %i:   %i\n", $chr, $snp_count);
-	print sprintf("SNP count in each partition:  %i\n", $snp_count/$N);
+	print sprintf("chromosome %02i with %5i SNPs:   %i per partition \n", 
+                  $chr, $snp_count, $snp_count/$N);
 	exit;
 }
 
