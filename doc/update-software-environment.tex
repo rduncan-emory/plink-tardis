@@ -1,0 +1,64 @@
+% update-software-environment.tex
+
+%-------------------------------------------------------------
+\startsubsubject[title={Updating the software environment}]
+%-------------------------------------------------------------
+
+First check to see if the most recent version of R is loaded into your software environment:
+%%
+\startSTDIN
+  which R && R --version
+\stopSTDIN
+%%
+Here is sample output from this command:
+%%
+\startSTDOUT
+[rduncan-emory@tardis-6 ~]$ which R && R --version
+/usr/local/packages/R/2.13.1/gcc-4.4.5/bin/R
+R version 2.13.1 (2011-07-08)
+Copyright (C) 2011 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under the terms of the
+GNU General Public License version 2.
+For more information about these matters see
+http://www.gnu.org/licenses/.
+\stopSTDOUT
+%%$
+
+The version of R loaded into the software environment here (2.13.1) is rather old.  
+We can remove that version from the software stack
+then add the latest version using the \command{module} command:
+%%
+\startSTDIN
+  module rm R
+  module add R/3.0.1
+\stopSTDIN
+%%
+
+Similarly, check to see if \PLINK is available:
+%%
+\startSTDIN
+  which plink
+\stopSTDIN
+
+%%
+\startSTDOUT
+[rduncan-emory@tardis-6 ~]$ which plink
+/usr/bin/which: no plink in (/usr/local/packages/R/3.0.1//bin/:/usr/local/packages/rstudio/0.97.551/R-3.0.1/bin:...)
+\stopSTDOUT %$
+%%
+If not, then add it to the software environment:
+%%
+\startSTDIN
+  module add plink
+\stopSTDIN
+%%
+
+\PLINK makes calls to R through the Rserve daemon which will be considered next.
+
+\stopsubsubject
+
+\endinput

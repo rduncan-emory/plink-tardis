@@ -1,0 +1,43 @@
+% summary.tex
+
+
+%-------------------------------------------------------------
+\startsubsubject[title={Putting it all together}]
+%-------------------------------------------------------------
+
+Thus the sequence of commands to perform a \PLINK analysis of the SNPS across all chromosomes
+with \command{M=100} SNPs per batch 
+may look like this:
+%%
+\startSTDIN
+./partition-snps-genome.pl --options plink-options --M=100 > cmds
+./make-plink-schedule.pl --in=cmds --out=plink-qsubs --template=run-plink.template
+./plink-qsubs
+\stopSTDIN
+%%
+
+
+%\warning{NB:  for now, this is untested!}
+\warning{NB:  plink-qsubs still untested}
+
+%-------------------------------------------------------------
+\startsubsubject[title={To do}]
+%-------------------------------------------------------------
+
+
+\stopsubsubject
+
+\endinput
+
+
+
+%%
+\placefigure[here][fig:partition-flow]
+{   Sequence for generating \PLINK scripts
+  and a corresponding executable schedule script for 
+  SNPs partioned across the genome.
+}
+{
+  \externalfigure[plink-cmd-partition.pdf][width=0.8\textwidth]
+}
+%%

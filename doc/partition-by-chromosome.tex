@@ -1,0 +1,85 @@
+% partition-by-chromosome.tex
+
+%-------------------------------------------------------------
+\startsubsubject[title={Partitioning SNP indicies along a chromosome}]
+%-------------------------------------------------------------
+
+A Perl script,
+\filename{partition-snps-by-chromosome.pl},
+has been developed to contiguously partition the SNP index set
+subsequently creating the corresponding \PLINK command for each partition.
+Eventually, these commands will be executed separately by the scheduler.
+%
+Using the \command{--help} option produces a more detailed description of this
+script and the options passed to it.
+%%
+\startSTDIN
+./partition-snps-by-chromosome.pl --help
+\stopSTDIN
+%%
+
+To print a count of SNPs across a given chromosome, use the \command{--summary} option.
+In this example, we ask for a summary of 
+\command{--N=100} partitions of the 
+chromosome 2 SNPs listed in file \filename{AA.bim}
+specified by the \command{bfile} line in the file \filename{plink-options}:
+
+%%
+\startSTDIN
+./partition-snps-by-chromosome.pl --options plink-options --N 100 --chr 2 --summary
+\stopSTDIN
+%%
+\startSTDOUT
+SNP count in chromosome 2:   52558
+SNP count in each partition:  525
+\stopSTDOUT
+%%
+Thus, there are 52,558 SNPs along chromosome 2 in this data set and
+partitioning into 100 subsets yields 525 SNPs in each batch.
+The command to construct then store the set of corresponding \PLINK command calls into
+a file named \filename{cmds} is:
+%%
+\startSTDIN
+./partition-snps-by-chromosome.pl --options plink-options --N 100 --chr 2 > cmds
+\stopSTDIN
+%%
+The output of this script is printed to the file \filename{cmds} consisting of the list of \PLINK commands for each partition preceded by a brief summary of SNP counts.  Within each of those commands the \command{--snps} option passes to \PLINK a beginning and ending SNP for each respective \PLINK call.  The output file looks like this:
+%%
+\startSTDOUT
+plink --noweb  --bfile=AA --covar=cov.dat --R=Rplink.R --silent --chr 2 --snps rs10195681-rs11693178 --out=BDI_chr02_rs1
+plink --noweb  --bfile=AA --covar=cov.dat --R=Rplink.R --silent --chr 2 --snps rs985467-rs1129241 --out=BDI_chr02_rs2
+plink --noweb  --bfile=AA --covar=cov.dat --R=Rplink.R --silent --chr 2 --snps rs10197283-rs16863417 --out=BDI_chr02_rs3
+plink --noweb  --bfile=AA --covar=cov.dat --R=Rplink.R --silent --chr 2 --snps rs7577322-rs10172433 --out=BDI_chr02_rs4
+\stopSTDOUT
+%%$
+The \command{--noweb} option is automatically included in the options list.
+
+Furthermore, we could run this for any other chromosomes of interest, appending to the file the resulting set of commands:
+%%
+\startSTDIN
+./partition-snps-by-chromosome.pl --options plink-options --N 100 --chr 3 >> cmds
+\stopSTDIN
+%%
+%%
+\startSTDIN
+./partition-snps-by-chromosome.pl --options plink-options --N 100 --chr 4 >> cmds
+\stopSTDIN
+%%
+etc.
+
+Note the difference in the use of '$>$~\filename{cmds}' in the first call to the script and '$>>$~\filename{cmds}' in subsequent calls.  
+The former overwrites any old file contents or creates a new file with the output.  
+The latter appends the outputs to the already existing file.  Thus, the commands for all chromosomes can be maintained in a single file.
+
+Consequently, with potentially thousands of commands to queue, 
+e.g., $\sim$2200 such commands to cover all SNPs across every chromosome, 
+this would be difficult to manage manually.
+Furthermore, with differing SNP counts for each chromosome, manually choosing the number of partitions
+in this way is not an optimal strategy for working with the entire genome.
+Next we will discuss a script for partitioning genome-wide sets of SNPs using a sensible uniform-count partitioning scheme.
+
+
+
+\stopsubsubject
+
+\endinput

@@ -1,0 +1,121 @@
+% install-run-Rserve.tex
+
+%-------------------------------------------------------------
+\startsubsubject[title={Installing and executing Rserve}]
+%-------------------------------------------------------------
+
+In this section we will install Rserve as a package to the local directory tree.
+We'll then briefly start it as a background process to test its readiness.
+
+With only user-level privileges, we must install Rserve and other needed packages
+locally.
+First, if they doesn't already exist, create a set of directories
+for managing local R package installations and code sources:
+%%
+\startSTDIN
+  mkdir -p ~/R/library ~/R/src
+\stopSTDIN
+%%
+
+The latest version of Rserve should be found at the CRAN site:
+
+\from[CRAN].
+
+Using the link address to the package source code there, 
+download Rserve into the local source directory:
+%%
+\startSTDIN
+  wget http://cran.r-project.org/src/contrib/Rserve_1.7-3.tar.gz -P ~/R/src/
+\stopSTDIN
+%%
+
+Now perform the local package installation of Rserve:
+
+%%
+\startSTDIN
+  R CMD INSTALL -l ~/R/library ~/R/src/Rserve_1.7-3.tar.gz
+\stopSTDIN
+%%
+
+
+%-------------------------------------------------------------
+\subsubsubject{Running Rserve in the background}
+%-------------------------------------------------------------
+
+In order for \PLINK to make calls to R, Rserve will need to be running 
+as a background process.
+A short R test script to test this capability follows:
+
+%%
+\startSTDOUT
+#------------------------------------------------------------
+# run-Rserve.R
+#------------------------------------------------------------
+.libPaths("~/R/library")   # where local packages are found
+library(Rserve)            # load Rserve package
+Rserve(args="--no-save")   # run Rserve in background
+\stopSTDOUT
+%%
+
+Save this as \filename{run-Rserve.R} then execute it from the command line in the usual way:
+%%
+\startSTDIN
+  R --slave < run-Rserve.R 
+\stopSTDIN
+%%
+
+To verify that Rserve is now running in the background, run \command{grep} against
+the process report:
+%%
+\startSTDIN
+  ps -ef | grep Rserve
+\stopSTDIN
+%%
+
+Here is a sample output from this command:
+%%
+\startSTDOUT
+[rduncan-emory@tardis-6 ~]$ ps -ef | grep Rserve
+480020   24171     1  0 16:14 ?        00:00:00 /nv/het1/rduncan-emory/R/library/Rserve/libs//Rserve --no-save
+480020   24304 24007  0 16:15 pts/2    00:00:00 grep Rserve
+\stopSTDOUT
+%%$
+The first column is the user ID.  The second column contains the process ID (PID), which will be important later.  In this case, \command{grep} returned two processes:  the actual grep call itself (PID 24304) and the running Rserve (PID 24171).  After we have finished using Rserve, this latter PID can be used to kill the Rserve daemon during clean-up.
+
+Since we'll call Rserve from the R scripts used with \PLINK,
+let us kill this test Rserve daemon.
+A safe way to execute the kill command is
+%%
+\startSTDIN
+  killall -i --exact Rserve
+\stopSTDIN
+%%
+The option \command{-i} makes this command interactive, i.e., forces you to answer
+yes/no questions before proceeding, while the \command{--exact} option matches
+processes that have the exact word 'Rserve' in the name.
+
+Alternatively, if you are sure of the PID for the Rserve process, it can be killed
+using the command:
+%%
+\startSTDIN
+  kill -s SIGKILL PID
+\stopSTDIN
+%%
+where {\em PID} is replaced with the actual process ID number, e.g., in this case 24171.
+
+Note that this extra step of terminating the background Rserve process will not be
+necessary during the production run:  the scheduler will handle that detail.
+
+Now that Rserve is installed and working we are set to run \PLINK with R plugins.
+With potentially tens- or hundreds-of-thousands of SNPs across the genome
+to include in the \PLINK analysis, it will be advantageous to partition the SNPs into 
+smaller sets that are appropriate for parallellization.
+In the next section, 
+we'll use Perl scripts to build a set of \PLINK commands to analyze those partitioned subsets 
+then produce a set of batch scripts that can be queued to the scheduler along with a 
+master script to perform the actual queueing.
+
+
+\stopsubsubject
+
+\endinput
