@@ -52,7 +52,7 @@ my $bfile = $1;
 my $bimfile = sprintf("%s.bim", $bfile);
 
 my $outroot = $bfile;
-if($opts =~ m/--outroot=(\S+)\s+.+/){
+if($opts =~ m/--out=(\S+)\s+.+/){
     # user specified outfile root:
     $outroot = $1;
 }
@@ -107,11 +107,13 @@ for(my $j = 0; $j < $N; $j++){
         $from_rs = $snp_data[1];
     }
 
-    # construct the command options for this set of SNPs:
+    # replace output file root with tagged version:
+    $plink_opts =~ s/ --out=\S+//;
+
     my $jx = "$j+1";
     my $outroot = $outroot_j;
     $outroot =~ s/X/$jx/ee;
-    $plink_opts = sprintf("%s %s --out %s", $plink_opts, $rs_range, $outroot);
+    $plink_opts = sprintf("%s %s --out=%s", $plink_opts, $rs_range, $outroot);
 
     # print the command with options:
     my $cli = sprintf("%s %s", $plink, $plink_opts);
