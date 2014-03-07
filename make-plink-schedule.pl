@@ -83,7 +83,7 @@ while($line = <PARTITIONS>){
 		my $cmd = $line;
 
 		# name of corresponding job id and batch file:
-		$line =~ m/--out\s(.+)$/;
+		$line =~ m/--outroot[ =]+(.+)\s.+$/;
 		my $jobid = $1;
 		my $batch_file = sprintf("%s.sh", $jobid);
 
