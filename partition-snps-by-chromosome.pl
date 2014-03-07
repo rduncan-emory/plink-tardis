@@ -14,48 +14,48 @@
 # sample commands:
 #-------------------------------------------------------------------------
 #./partition-snps-by-chromosome.pl --help
-#./partition-snps-by-chromosome.pl --N=8 --bfile=AA --out=BDI --covar=covariate.cov --Rplink=Rplink.R --silent --chr 22
-#./partition-snps-by-chromosome.pl --N=100 --bfile=AA --chr 2 --summary
+#./partition-snps-by-chromosome.pl --options plink-options --N=8 --chr 22
+#./partition-snps-by-chromosome.pl --options plink-options --N=100 --chr 2 --summary
 #-------------------------------------------------------------------------
-
 
 use strict;
 use warnings;
-use Time::Local;
 use Getopt::Long;
 use Pod::Usage;
+use FetchOptions;
 
 #--------------------------------------------#
 # process command line input:
 #--------------------------------------------#
-my $chr = 1;
-my $N = 10;                # number of partitions
-my $bfile = "AA";          # binary plink data file root
-my $covar = "covariate.cov";
-my $Rplink = "Rplink.R";
-my $maf = 0.0;
-my $outroot = "plink";
-my $remove;
-my $silent;
+my $options_file;   # list of plink options
+my $chr = 1;        # chromosome number
+my $N = 10;         # number of partitions
 my $help;
 my $summary;
-GetOptions('chr=i'    => \$chr,
-		   'N=i'      => \$N,
-		   'bfile=s'  => \$bfile,
-		   'covar=s'  => \$covar,
-		   'Rplink=s' => \$Rplink,
-		   'remove=s' => \$remove,
-		   'out=s'    => \$outroot,
-		   'maf=f'    => \$maf,
-		   'silent'   => \$silent,
-		   'summary'  => \$summary,
-           'help'     => \$help,       # show program help information
+GetOptions('chr=i'      => \$chr,
+		   'options=s'  => \$options_file,
+		   'N=i'        => \$N,
+		   'summary'    => \$summary,
+           'help'       => \$help,       # show program help information
     );
 
 # mechanisms for printing help information:
 pod2usage(-exitval => 1, -verbose => 2, -output => \*STDOUT)  if ($help);
 
+#-----------------------------------------------------------
+# construct the options not specific to any partition:
+#-----------------------------------------------------------
+my $opts = &FetchOptions($options_file);
+
+$opts =~ m/--bfile=(\S+)\s+.+/;
+my $bfile = $1;
 my $bimfile = sprintf("%s.bim", $bfile);
+
+my $outroot = $bfile;
+if($opts =~ m/--outroot=(\S+)\s+.+/){
+    # user specified outfile root:
+    $outroot = $1;
+}
 my $chr_filter = `grep -e "^$chr\\s" $bimfile`;
 my @chr_data = split('\n', $chr_filter);
 
@@ -68,6 +68,7 @@ if($summary){
 	print sprintf("SNP count in each partition:  %i\n", $snp_count/$N);
 	exit;
 }
+
 
 # various containers used in this script:
 my @snp_data;
@@ -86,29 +87,8 @@ my @rs_cli;
 
 
 # construct the options not specific to any partition:
-my $opts = sprintf("--noweb");
-if($bfile){
-    $opts = sprintf("%s --bfile %s", $opts, $bfile);
-}
-if($remove){
-    $opts = sprintf("%s --remove %s", $opts, $remove);
-}
-if($maf > 0.0){
-    $opts = sprintf("%s --maf %s ", $opts, $maf);
-    $outroot = sprintf("%s_maf=%3.2f", $outroot, $maf);
-}
-if($covar){
-    $opts = sprintf("%s --covar %s", $opts, $covar);
-}
-if($Rplink){
-    $opts = sprintf("%s --R %s", $opts, $Rplink);
-}
-if($chr){
-    $opts = sprintf("%s --chr %i", $opts, $chr);
-}
-if($silent){
-    $opts = sprintf("%s --silent", $opts);
-}
+$opts = sprintf("--noweb %s", $opts);
+$opts = sprintf("%s --chr %i", $opts, $chr);
 my $outroot_j = sprintf("%s_chr%02i_rsX", $outroot, $chr);
 
 # loop across index of partitions:
@@ -147,7 +127,7 @@ partition-snps-by-chromosome.pl - Generate PLINK commands for SNP data partition
 
 =head1 SYNOPSIS
 
-partition-snps-by-chromosome.pl [--chr I<chromosome_number>] [--N I<partitions>]  [--bfile I<input_fileroot>] [--out I<output_fileroot>] [OPTIONS]...
+partition-snps-by-chromosome.pl --options-file I<OPTIONS_FILE> [--chr I<chromosome_number>] [--N I<partitions>] [OPTIONS]...
 
 Some of the options are better-described in the PLINK documentation:
 L<http://pngu.mgh.harvard.edu/~purcell/plink/reference.shtml#options>
@@ -155,6 +135,26 @@ L<http://pngu.mgh.harvard.edu/~purcell/plink/reference.shtml#options>
 =head1 ARGUMENTS
 
 =over 4
+
+=item B<--options-file I<OPTIONS_FILE>>
+
+Two column file of PLINK options common to all partitions.
+The first column are PLINK option tags (without the '--') and the
+second column are the corresponding settings if applicable.
+An example options file may look like this:
+
+ #-- plink-options.txt --------------------
+ bfile    AA
+ covar    covariate.cov
+ R        Rplink.R
+ maf      0.0
+ outroot  plink
+ silent
+ #-----------------------------------------
+
+PLINK options are described in the PLINK documentation:
+L<http://pngu.mgh.harvard.edu/~purcell/plink/reference.shtml#options>
+
 
 =item B<--chr I<chromosome_number>>
 
@@ -164,50 +164,16 @@ chromosome number [1-23].  Default is 1.
 
 Number of partitions.  Default is 10.
 
-=item B<--bfile I<input_fileroot>>
-
-Binary input data filename used by PLINK.
-Default is 'AA'.
-
-=item B<--out I<output_fileroot>>
-
-Root of output file.  
-Subsequently, the actual output files will be tagged 
-with other parameter settings, e.g., chromosome number,
-to ensure uniqueness.
-Default is 'plink'.
-
 =back
 
 =head1 OPTIONS
 
 =over 4
 
-=item B<--covar I<covariate_file>>
-
-Name of covariates file to be used by PLINK.
-
-=item B<--Rplink I<Rscript>>
-
-Name of R plugin script to be used by PLINK.
-
-=item B<--maf I<minor_allele_freq>>
-
-Specify the minor allele frequency used in PLINK call.
-
-=item B<--remove <remove_individuals_file>>
-
-File of individuals for PLINK to remove.
-
-=item B<--summary
+=item B<--summary>
 
 Summarize the total and per-partition SNP count 
 for the specified I<chromosome> and I<N>. 
-
-=item B<--silent>
-
-Pass --silent in the PLINK command line call.  
-The only time it makes sense to not pass this is during testing/debugging, since PLINK can be rather verbose in in its std output.
 
 =item B<--help>
 
@@ -225,17 +191,14 @@ e.g., in parallel.
 
 =head1 EXAMPLE
 
-Suppose the SNPs along chromosome 7 specified in dataset F<AA.bim> are 
-to be analyzed with covariate data contained in F<covariate.cov> 
-using R plugin script F<Rplink.R>.  
-Also, the PLINK file output is to be written to files with root 
-beginning with the string I<BDI> while non-file output is suppressed 
-via the --silent option.
+Suppose a dataset and options are specified in the 
+options file F<plink-options>.
+The PLINK commands for analyzing the SNPs along chromosome 7 
+divided into 100 partitions are obtained thus:
 
-The SNPs will be divided into 100 partitions and a separate PLINK
-command will be developed for each partition using the command
+partition-snps-by-chromosome.pl --options plink-options --chr=7 --N=100 > cmds
 
-partition-snps-by-chromosome.pl --chr=7 --N=100 --bfile=AA --out=BDI --covar=covariate.cov --Rplink=Rplink.R --silent
+In this case, the plink commands were printed to the file F<cmds>.
 
 
 =head1 AUTHOR
@@ -244,6 +207,37 @@ partition-snps-by-chromosome.pl --chr=7 --N=100 --bfile=AA --out=BDI --covar=cov
  Richard Duncan, richard.duncan@emory.edu
  Emory University, School of Medicine
  Department of Human Genetics
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2014, Richard Duncan
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the {organization} nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut  

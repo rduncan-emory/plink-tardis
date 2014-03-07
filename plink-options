@@ -1,0 +1,7 @@
+# plink options
+bfile    AA
+covar    covariate.cov
+R        Rplink.R
+maf      0.0
+outroot  test-plink
+silent

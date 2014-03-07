@@ -14,44 +14,34 @@
 # sample commands:
 #-------------------------------------------------------------------------
 #./partition-snps-genome.pl --help
-#./partition-snps-genome.pl --M=100 --bfile=AA --out=BDI --covar=covariate.cov --Rplink=Rplink.R --silent
-#./partition-snps-genome.pl --M=50 --bfile=AA --summary
+#./partition-snps-genome.pl --options plink-options --M=100
+#./partition-snps-genome.pl --options plink-options --M=50 --summary
 #-------------------------------------------------------------------------
 
 use strict;
 use warnings;
-use Time::Local;
 use Getopt::Long;
 use Pod::Usage;
+use FetchOptions;
 
 #--------------------------------------------#
 # process command line input:
 #--------------------------------------------#
-my $chr23;                 # include chromosome 23?
-my $M = 100;               # number of SNPs per batch
-my $bfile = "AA";          # binary plink data file root
-my $covar = "covariate.cov";
-my $Rplink = "Rplink.R";
-my $maf = 0.0;
-my $outroot = "plink";
-my $remove;
-my $silent;
+my $options_file;     # list of plink options
+my $M = 100;          # number of SNPs per batch
+my $chr23;            # include chromosome 23?
 my $help;
 my $summary;
-GetOptions('chr23'    => \$chr23,
-		   'M=i'      => \$M,
-		   'bfile=s'  => \$bfile,
-		   'covar=s'  => \$covar,
-		   'Rplink=s' => \$Rplink,
-		   'remove=s' => \$remove,
-		   'out=s'    => \$outroot,
-		   'maf=f'    => \$maf,
-		   'silent'   => \$silent,
-		   'summary'  => \$summary,
-           'help'     => \$help,       # show program help information
+GetOptions('chr23'      => \$chr23,
+		   'options=s'  => \$options_file,
+		   'M=i'        => \$M,
+		   'summary'    => \$summary,
+           'help'       => \$help,       # show program help information
     );
 
+#-----------------------------------------------------------
 # mechanisms for printing help information:
+#-----------------------------------------------------------
 pod2usage(-exitval => 1, -verbose => 2, -output => \*STDOUT)  if ($help);
 
 my $chr_max = 22;
@@ -59,61 +49,56 @@ if($chr23){
 	$chr_max = 23;
 }
 
-my $bimfile = sprintf("%s.bim", $bfile);
 my $plink = "plink";  # main executable
 my $partition_snps_chromosome = "./partition-snps-by-chromosome.pl";
 
+
+#-----------------------------------------------------------
 # construct the options not specific to any partition:
-my $opts = "";
-if($bfile){
-    $opts = sprintf("%s --bfile %s", $opts, $bfile);
-}
-if($remove){
-    $opts = sprintf("%s --remove %s", $opts, $remove);
-}
-if($maf > 0.0){
-    $opts = sprintf("%s --maf %s ", $opts, $maf);
-    $outroot = sprintf("%s_maf=%3.2f", $outroot, $maf);
-}
-if($covar){
-    $opts = sprintf("%s --covar %s", $opts, $covar);
-}
-if($Rplink){
-    $opts = sprintf("%s --Rplink %s", $opts, $Rplink);
-}
-if($silent){
-    $opts = sprintf("%s --silent", $opts);
-}
+#-----------------------------------------------------------
+my $opts = &FetchOptions($options_file);
+$opts =~ m/--bfile=(\S+)\s+.+/;
+my $bfile = $1;
+my $bimfile = sprintf("%s.bim", $bfile);
 
+#-----------------------------------------------------------
 # start with fresh opts line:
-my $common_plink_opts = $opts;
+#-----------------------------------------------------------
+my $chromosome_options = sprintf("--options=%s", $options_file);
 
+
+#-----------------------------------------------------------
+# begin partitioning by chromosome:
+#-----------------------------------------------------------
 for my $chr (1..$chr_max){
 
-	if($chr){
-		$opts = sprintf("%s --chr %i", $common_plink_opts, $chr);
-	}
+	$opts = sprintf("%s --chr %i", $chromosome_options, $chr);
 
+	# grep bimfile for lines of chromosome $chr:
 	my $chr_filter = `grep -e "^$chr\\s" $bimfile`;
 	my @chr_data = split('\n', $chr_filter);
 
+	# how many SNPs per partition on this chromosome:
 	my $snp_count = @chr_data;
 	my $N = $snp_count/$M;
-
-	if($M){
-		$opts = sprintf("%s --N %i", $opts, $N);
-	}
+	$opts = sprintf("%s --N %i", $opts, $N);
 
 	if($summary){
-		#print sprintf("%i partitions of chromosome %i\n", $N, $chr);
-		#my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
+        #-----------------------------------------------------------
+        # the --summary option only prints a per-chromosome 
+        #   breakdown of SNP partitions:
+        #-----------------------------------------------------------
 		my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
+		print $cli . "\n";
 		system $cli;
 	}
 	else{
-		# print the command with options:
+        #-----------------------------------------------------------
+		# print the full list of command lines for each partition:
+        #-----------------------------------------------------------
 		my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
-		system $cli;
+		print $cli . "\n";
+        system $cli;
 	}
 }
 
@@ -128,31 +113,36 @@ partition-snps-genome.pl - Generate PLINK commands for SNP data partitioned acro
 
 =head1 SYNOPSIS
 
-partition-snps-genome.pl [--M I<SNPs_per_batch>] [--bfile I<input_fileroot>] [--out I<output_fileroot>] [OPTIONS]...
-
-Some of the options are better-described in the PLINK documentation:
-L<http://pngu.mgh.harvard.edu/~purcell/plink/reference.shtml#options>
+partition-snps-genome.pl --options-file I<OPTIONS_FILE> [--M I<SNPs_per_batch>] [OPTIONS]...
 
 =head1 ARGUMENTS
 
 =over 4
 
+=item B<--options-file I<OPTIONS_FILE>>
+
+Two column file of PLINK options common to all partitions.
+The first column are PLINK option tags (without the '--') and the
+second column are the corresponding settings if applicable.
+An example options file may look like this:
+
+ #-- plink-options.txt --------------------
+ bfile    AA
+ covar    covariate.cov
+ R        Rplink.R
+ maf      0.0
+ outroot  plink
+ silent
+ #-----------------------------------------
+
+PLINK options are described in the PLINK documentation:
+L<http://pngu.mgh.harvard.edu/~purcell/plink/reference.shtml#options>
+
+
 =item B<--M I<SNPs_per_batch>>
 
 Partition each chromosome to fit M SNPs in each batch call.
-
-=item B<--bfile I<input_fileroot>>
-
-Binary input data filename used by PLINK.
-Default is 'AA'.
-
-=item B<--out I<output_fileroot>>
-
-Root of output file.  
-Subsequently, the actual output files will be tagged 
-with other parameter settings, e.g., chromosome number,
-to ensure uniqueness.
-Default is 'plink'.
+The default is M=100.
 
 =back
 
@@ -162,32 +152,12 @@ Default is 'plink'.
 
 =item B<--chr23>
 
-Pass this option to include chromosome 23.
+Pass this option to include SNPs from chromosome 23.
+NB:  This has not yet been well-considered.
 
-=item B<--covar I<covariate_file>>
-
-Name of covariates file to be used by PLINK.
-
-=item B<--Rplink I<Rscript>>
-
-Name of R plugin script to be used by PLINK.
-
-=item B<--maf I<minor_allele_freq>>
-
-Specify the minor allele frequency used in PLINK call.
-
-=item B<--remove <remove_individuals_file>>
-
-File of individuals for PLINK to remove.
-
-=item B<--summary
+=item B<--summary>
 
 Summarize but do not perform the partitioning scheme for the specified inputs.
-
-=item B<--silent>
-
-Pass --silent in the PLINK command line call.  
-The only time it makes sense to not pass this is during testing/debugging, since PLINK can be rather verbose in in its std output.
 
 =item B<--help>
 
@@ -204,24 +174,49 @@ separately, e.g., in parallel.
 
 =head1 EXAMPLE
 
-Suppose the SNPs across chromosome 1-22 specified in dataset F<AA.bim> are 
-to be analyzed with covariate data contained in F<covariate.cov> 
-using R plugin script F<Rplink.R>.  
-Also, the PLINK file output is to be written to files with root 
-beginning with the string I<BDI> while non-file output is suppressed 
-via the --silent option.
+Suppose the PLINK command line options are listed in file F<plink-options>.
+To produce PLINK command line calls with 100 SNPs in each seperate batch:
 
-To produce PLINK command line calls with 100 SNPs in each seperate batch,
+partition-snps-genome.pl --M 100 --options plink-options > cmds
 
-partition-snps-genome.pl --M=100 --bfile=AA --out=BDI --covar=covariate.cov --Rplink=Rplink.R --silent
-
+In this case, the plink commands were printed to the file F<cmds>.
 
 =head1 AUTHOR
-
 
  Richard Duncan, richard.duncan@emory.edu
  Emory University, School of Medicine
  Department of Human Genetics
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2014, Richard Duncan
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the {organization} nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut  
