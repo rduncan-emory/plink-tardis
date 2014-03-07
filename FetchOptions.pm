@@ -32,28 +32,28 @@ our @EXPORT = qw(FetchOptions);
 
 sub FetchOptions {
 
-	# filename for plink options:
-	my $options_file = shift;
+    # filename for plink options:
+    my $options_file = shift;
 
     # construct the options not specific to any partition:
     my $opts = "";
     open(OPTS, "< $options_file");
     while(my $option = <OPTS>){
         chomp $option;
-		if($option !~ m/^\#/) {
+        if($option !~ m/^\#/) {
 
-			my @opt_array = split(' ', $option);
-			if($opt_array[1]){
-				$opts = sprintf("%s --%s=%s", $opts, $opt_array[0], $opt_array[1]);
-			} else {
-				$opts = sprintf("%s --%s", $opts, $opt_array[0]);
-			}
+            my @opt_array = split(' ', $option);
+            if($opt_array[1]){
+                $opts = sprintf("%s --%s=%s", $opts, $opt_array[0], $opt_array[1]);
+            } else {
+                $opts = sprintf("%s --%s", $opts, $opt_array[0]);
+            }
 
-		} # match leading #
+        } # match leading #
 
-	} # while <OPTS>
+    } # while <OPTS>
 
-	return $opts;
+    return $opts;
 } # get_plink_options
 
 1;
