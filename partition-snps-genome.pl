@@ -33,9 +33,9 @@ my $chr23;            # include chromosome 23?
 my $help;
 my $summary;
 GetOptions('chr23'      => \$chr23,
-		   'options=s'  => \$options_file,
-		   'M=i'        => \$M,
-		   'summary'    => \$summary,
+           'options=s'  => \$options_file,
+           'M=i'        => \$M,
+           'summary'    => \$summary,
            'help'       => \$help,       # show program help information
     );
 
@@ -46,7 +46,7 @@ pod2usage(-exitval => 1, -verbose => 2, -output => \*STDOUT)  if ($help);
 
 my $chr_max = 22;
 if($chr23){
-	$chr_max = 23;
+    $chr_max = 23;
 }
 
 my $plink = "plink";  # main executable
@@ -72,34 +72,34 @@ my $chromosome_options = sprintf("--options=%s", $options_file);
 #-----------------------------------------------------------
 for my $chr (1..$chr_max){
 
-	$opts = sprintf("%s --chr %i", $chromosome_options, $chr);
+    $opts = sprintf("%s --chr %i", $chromosome_options, $chr);
 
-	# grep bimfile for lines of chromosome $chr:
-	my $chr_filter = `grep -e "^$chr\\s" $bimfile`;
-	my @chr_data = split('\n', $chr_filter);
+    # grep bimfile for lines of chromosome $chr:
+    my $chr_filter = `grep -e "^$chr\\s" $bimfile`;
+    my @chr_data = split('\n', $chr_filter);
 
-	# how many SNPs per partition on this chromosome:
-	my $snp_count = @chr_data;
-	my $N = $snp_count/$M;
-	$opts = sprintf("%s --N %i", $opts, $N);
+    # how many SNPs per partition on this chromosome:
+    my $snp_count = @chr_data;
+    my $N = $snp_count/$M;
+    $opts = sprintf("%s --N %i", $opts, $N);
 
-	if($summary){
+    if($summary){
         #-----------------------------------------------------------
         # the --summary option only prints a per-chromosome 
         #   breakdown of SNP partitions:
         #-----------------------------------------------------------
-		my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
-		#print $cli . "\n";
-		system $cli;
-	}
-	else{
-        #-----------------------------------------------------------
-		# print the full list of command lines for each partition:
-        #-----------------------------------------------------------
-		my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
-		print $cli . "\n";
+        my $cli = sprintf("%s %s --summary", $partition_snps_chromosome, $opts);
+        #print $cli . "\n";
         system $cli;
-	}
+    }
+    else{
+        #-----------------------------------------------------------
+        # print the full list of command lines for each partition:
+        #-----------------------------------------------------------
+        my $cli = sprintf("%s %s", $partition_snps_chromosome, $opts);
+        print $cli . "\n";
+        system $cli;
+    }
 }
 
 

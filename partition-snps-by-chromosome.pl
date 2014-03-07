@@ -33,9 +33,9 @@ my $N = 10;         # number of partitions
 my $help;
 my $summary;
 GetOptions('chr=i'      => \$chr,
-		   'options=s'  => \$options_file,
-		   'N=i'        => \$N,
-		   'summary'    => \$summary,
+           'options=s'  => \$options_file,
+           'N=i'        => \$N,
+           'summary'    => \$summary,
            'help'       => \$help,       # show program help information
     );
 
@@ -64,9 +64,9 @@ my $plink = "plink";  # main executable
 my $snp_count = @chr_data;
 # summarize the partitioning that would occur then exit:
 if($summary){
-	print sprintf("chromosome %02i with %5i SNPs:   %i per partition \n", 
+    print sprintf("chromosome %02i with %5i SNPs:   %i per partition \n", 
                   $chr, $snp_count, $snp_count/$N);
-	exit;
+    exit;
 }
 
 
@@ -76,8 +76,8 @@ my @snp;
 my @partition = ();
 my @position = ();
 for(my $j = 1; $j <= $N; $j++){
-	my $snp_index = int($snp_count*$j/$N);
-	push @partition, $snp_index;
+    my $snp_index = int($snp_count*$j/$N);
+    push @partition, $snp_index;
 }
 
 @snp_data = split(' ', $chr_data[0]);
@@ -94,26 +94,26 @@ my $outroot_j = sprintf("%s_chr%02i_rsX", $outroot, $chr);
 # loop across index of partitions:
 for(my $j = 0; $j < $N; $j++){
 
-	# start with fresh opts line:
+    # start with fresh opts line:
     my $plink_opts = $opts;
 
-	# the SNP index boundaries for this partition are resolved here:
+    # the SNP index boundaries for this partition are resolved here:
     @snp_data = split(' ', $chr_data[$partition[$j] - 1]);
     $to_rs = $snp_data[1];
     my $rs_range = sprintf("--snps %s-%s", $from_rs, $to_rs);
     push @rs_cli, $rs_range;
     if($j < $N - 1){
-		@snp_data = split(' ', $chr_data[$partition[$j]]);
-		$from_rs = $snp_data[1];
+        @snp_data = split(' ', $chr_data[$partition[$j]]);
+        $from_rs = $snp_data[1];
     }
 
-	# construct the command options for this set of SNPs:
+    # construct the command options for this set of SNPs:
     my $jx = "$j+1";
     my $outroot = $outroot_j;
     $outroot =~ s/X/$jx/ee;
     $plink_opts = sprintf("%s %s --out %s", $plink_opts, $rs_range, $outroot);
 
-	# print the command with options:
+    # print the command with options:
     my $cli = sprintf("%s %s", $plink, $plink_opts);
     print $cli . "\n";
 }
