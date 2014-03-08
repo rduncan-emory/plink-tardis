@@ -113,7 +113,7 @@ for(my $j = 0; $j < $N; $j++){
     my $jx = "$j+1";
     my $outroot = $outroot_j;
     $outroot =~ s/X/$jx/ee;
-    $plink_opts = sprintf("%s %s --out=%s", $plink_opts, $rs_range, $outroot);
+    $plink_opts = sprintf("%s %s --out %s", $plink_opts, $rs_range, $outroot);
 
     # print the command with options:
     my $cli = sprintf("%s %s", $plink, $plink_opts);
