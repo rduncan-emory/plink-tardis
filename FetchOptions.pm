@@ -44,7 +44,7 @@ sub FetchOptions {
 
             my @opt_array = split(' ', $option);
             if($opt_array[1]){
-                $opts = sprintf("%s --%s=%s", $opts, $opt_array[0], $opt_array[1]);
+                $opts = sprintf("%s --%s %s", $opts, $opt_array[0], $opt_array[1]);
             } else {
                 $opts = sprintf("%s --%s", $opts, $opt_array[0]);
             }

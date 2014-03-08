@@ -47,12 +47,12 @@ pod2usage(-exitval => 1, -verbose => 2, -output => \*STDOUT)  if ($help);
 #-----------------------------------------------------------
 my $opts = &FetchOptions($options_file);
 
-$opts =~ m/--bfile=(\S+)\s+.+/;
+$opts =~ m/--bfile\s+(\S+)\s+.+/;
 my $bfile = $1;
 my $bimfile = sprintf("%s.bim", $bfile);
 
 my $outroot = $bfile;
-if($opts =~ m/--out=(\S+)\s+.+/){
+if($opts =~ m/--out\s+(\S+)\s+.+/){
     # user specified outfile root:
     $outroot = $1;
 }

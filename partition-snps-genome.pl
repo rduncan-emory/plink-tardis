@@ -57,7 +57,7 @@ my $partition_snps_chromosome = "./partition-snps-by-chromosome.pl";
 # construct the options not specific to any partition:
 #-----------------------------------------------------------
 my $opts = &FetchOptions($options_file);
-$opts =~ m/--bfile=(\S+)\s+.+/;
+$opts =~ m/--bfile\s+(\S+)\s+.+/;
 my $bfile = $1;
 my $bimfile = sprintf("%s.bim", $bfile);
 
