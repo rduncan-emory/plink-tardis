@@ -108,7 +108,7 @@ for(my $j = 0; $j < $N; $j++){
     }
 
     # replace output file root with tagged version:
-    $plink_opts =~ s/ --out=\S+//;
+    $plink_opts =~ s/ --out\s+\S+//;
 
     my $jx = "$j+1";
     my $outroot = $outroot_j;

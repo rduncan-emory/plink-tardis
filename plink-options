@@ -1,7 +1,7 @@
 # plink options
 bfile    AA
-covar    covariate.cov
+covar    cov.dat
 R        Rplink.R
 maf      0.0
-outroot  test-plink
+out      test
 silent
