@@ -110,9 +110,10 @@ for(my $j = 0; $j < $N; $j++){
     # replace output file root with tagged version:
     $plink_opts =~ s/ --out\s+\S+//;
 
-    my $jx = "$j+1";
+    my $jx = $j+1;
+    my $jxstr = sprintf("%04i", $jx);
     my $outroot = $outroot_j;
-    $outroot =~ s/X/$jx/ee;
+    $outroot =~ s/X/$jxstr/;
     $plink_opts = sprintf("%s %s --out %s", $plink_opts, $rs_range, $outroot);
 
     # print the command with options:
